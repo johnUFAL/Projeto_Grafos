@@ -12,4 +12,3 @@ clean:
 run: $(TARGET)
 	./$(TARGET)
 
-.PHONY: clean run

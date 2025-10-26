@@ -7,16 +7,6 @@
 
 using namespace std;
 
-struct Vertice {
-    int id; //cd v eh unico
-    int key; //menor p entre u,v
-    int pre; //predecessor na agm
-};
-
-struct Aresta {
-    int u, v, p;
-};
-
 //comparação da fila de prioridade 
 struct compararV {
     //ordena com operator
@@ -26,44 +16,46 @@ struct compararV {
     }
 };
 
-int Prim(vector<vector<pair<int, int>>>& G, int n, int v0, vector<int>& pre, vector<int>& key) {
-    int tot = 0;
-
+int Prim(vector<vector<pair<int, int>>>& G, int n, int v0, vector<int>& pre) {
+    vector<int> key(n, numeric_limits<int>::max());
+    
     for (int i = 0; i < n; i++) {
-        key[i] = numeric_limits<int>::max();
         pre[i] = -1;
     }
-
+    
     key[v0] = 0;
     // fila prioridade min(v, key)
     priority_queue<pair<int, int>, vector<pair<int, int>>, compararV> F;
-    //v na fila?
-    vector<bool> NaFila(n, true);
+    F.push({v0, 0});    
+    
+    int tot = 0;
+    int v_processado = 0;
 
     //todos os v na fila
     for (int i = 0; i < n; i++) {
         F.push({i, key[i]});
     }
 
-    while (!F.empty()){
+    while (!F.empty() && v_processado < n){
         int u = F.top().first;
+        int w_u = F.top().second;
         F.pop();
-         
-        if (!NaFila[u]) continue;
-        NaFila[u] = false;
+
+        if(w_u > key[u]) continue;
 
         //p total
-        if (pre[u] != -1) {
+        if (pre[u] != -1 || u == v0) {
             tot +=key[u];
         }
+        v_processado++;
 
         //auto pra achar o tipo automaticamente
         for (auto& adj : G[u]) {
             int v = adj.first;
             int p = adj.second;
 
-            //v na fila e p é nemor que o atual
-            if (NaFila[v] && p < key[v]) {
+            //p é nemor que o atual
+            if (p < key[v]) {
                 pre[v] = u;
                 key[v] = p;
                 F.push({v, key[v]});
@@ -117,9 +109,9 @@ int main(int argc, char* argv[]) {
     //armazenar pre e key
     vector<int> pre(n);
     vector<int> key(n);
-    Prim(G, n, v_init, pre, key);
+    Prim(G, n, v_init, pre);
 
-    int pTot = Prim(G, n, v_init, pre, key);
+    int pTot = Prim(G, n, v_init, pre);
     
     if (solucao) {
         for (int i = 1; i < n; i++) {
