@@ -64,15 +64,30 @@ int Prim(vector<vector<pair<int, int>>>& G, int n, int v0, vector<int>& pre) {
     }
     return tot;
 }
+ //f. para as tags
+void ajuda() {
+    cout << "Uso: ./prim -f <arquivo> [-i <vertice>] [-s] [-o <saida]" << endl;
+    cout << "Parametros:" << endl;
+    cout << " -h          Mostrar esta ajuda" << endl;
+    cout << " -f <arquivo> Arquivo de entrada com o grafo" << endl;
+    cout << " -i <vertice> Vertice inicial" << endl;
+    cout << " -s          Mostrar a AGM" << endl;
+    cout << " -o <arquivo> Arquivode saida" << endl;
+}
 
 int main(int argc, char* argv[]) {
     string arquivo = "testee";
     int v_init = 0;
     bool solucao = false;
+    string saida = "";
 
     //parametros
     for (int i = 1 ; i < argc; i++) {
-                if (string(argv[i]) == "-f" && i+1 < argc) {
+        if (string(argv[i]) == "-h") {
+            ajuda();
+            return 0;
+        }
+        else if (string(argv[i]) == "-f" && i+1 < argc) {
             arquivo = argv[++i];
         }
         else if (string(argv[i]) == "-i" && i+1 < argc) {
@@ -80,6 +95,9 @@ int main(int argc, char* argv[]) {
         }
         else if (string(argv[i]) == "-s") {
             solucao = true;
+        }
+        else if (string(argv[i]) == "-o" && i + 1 < argc) {
+            saida = argv[++i];
         }
     }
 
