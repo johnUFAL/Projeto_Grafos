@@ -1,5 +1,5 @@
 CXX = g++ 
-CXXFLAGS = -std=c++11 -Wall -O2
+CXXFLAGS = -std=c++20 -Wall -O2
 TARGET = dijkstra
 SOURCES = dijkstra.cpp 
 
