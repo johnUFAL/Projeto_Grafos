@@ -13,7 +13,6 @@ struct compararV {
     }
 };
 
-
 void Dijkstra(vector<vector<pair<int, int>>>& G, int n, int v0, vector<int>& dist, vector<int>& pre) {
     for (int i = 0; i < n; i++) {
         dist[i] = numeric_limits<int>::max();
@@ -45,24 +44,20 @@ void Dijkstra(vector<vector<pair<int, int>>>& G, int n, int v0, vector<int>& dis
     }
 }
 
-
-//f. para as tags
 void ajuda() {
-    cout << "Uso: ./dijkstra -f <arquivo> -i <vertice> [-s] [-o <saida>]" << endl;
+    cout << "Uso: ./dijkstra -f <arquivo> [-i <vertice>] [-o <saida>]" << endl;
     cout << "Parametros:" << endl;
     cout << " -h          Mostrar esta ajuda" << endl;
     cout << " -f <arquivo> Arquivo de entrada com o grafo" << endl;
-    cout << " -i <vertice> Vertice inicial (OBRIGATORIO)" << endl;
-    cout << " -o <arquivo> Arquivode saida" << endl;
+    cout << " -i <vertice> Vertice inicial (padrao: 1)" << endl;
+    cout << " -o <arquivo> Arquivo de saida" << endl;
 }
 
 int main(int argc, char* argv[]) {
     string arquivo = "";
-    int v_init = -1;
-    bool solucao = false;
+    int v_init = 0;  
     string saida = "";
 
-    //processar argumentos
     for (int i = 1 ; i < argc; i++) {
         if (string(argv[i]) == "-h") {
             ajuda();
@@ -79,15 +74,14 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    if (arquivo == "" || v_init == -1) {
-        cerr << "Parametros obrigatorios faltando. Use -h para ajuda." << endl;
+    if (arquivo == "") {
+        cerr << "Arquivo de entrada nao especificado. Use -h para ajuda." << endl;
         return 1;
     }
 
-    //ler grafo do arquivo
     ifstream arq(arquivo);   
     if (!arq) {
-        cerr << "erro ao abrir arquivo" << arquivo << endl;
+        cerr << "Erro ao abrir arquivo " << arquivo << endl;
         return 1;
     }
 
@@ -96,43 +90,48 @@ int main(int argc, char* argv[]) {
     
     vector<vector<pair<int, int>>> G(n);
     
-    //lendo aresta
     for (int i = 0; i < m; i++) {
-        int u, v, p;
-        arq >> u >> v >> p;
+        int u, v, p = 1;
+        arq >> u >> v;
+        
+        if (arq.peek() != '\n' && arq.peek() != EOF && arq.peek() != '\r') {
+            arq >> p; 
+        }
 
         u--; v--;
         G[u].push_back({v, p});
-        G[v].push_back({u, p});  //grafo nao direcionado
+        G[v].push_back({u, p});
     }
     arq.close();
 
-    //executar dijkstra
     vector<int> dist(n);
     vector<int> pre(n);
     Dijkstra(G, n, v_init, dist, pre);
     
-    if (solucao) {
-        for (int i = 0; i < n; i++) {
-            if (i > 0) cout << " ";
-            if (dist[i] == numeric_limits<int>::max()) {
-                cout << i + 1 << ":-1";
-            } else {
-                cout << i + 1 << ":" << dist[i];
-            }
+    ostream* output = &cout;
+    ofstream out_file;
+    
+    if (!saida.empty()) {
+        out_file.open(saida);
+        if (!out_file) {
+            cerr << "Erro ao criar arquivo de saida: " << saida << endl;
+            return 1;
         }
-        cout << endl;
-    } else {
-        //formato v0:0, v1:di...
-        for (int i = 0; i < n; i++) {
-            if (i > 0) cout << " ";
-            if (dist[i] == numeric_limits<int>::max()) {
-                cout << i + 1 << ":-1 ";
-            } else {
-                cout << i + 1 << ":" << dist[i];
-            }
+        output = &out_file;
+    }
+    
+    for (int i = 0; i < n; i++) {
+        if (i > 0) *output << " ";
+        if (dist[i] == numeric_limits<int>::max()) {
+            *output << (i + 1) << ":-1";
+        } else {
+            *output << (i + 1) << ":" << dist[i];
         }
-        cout << endl;
+    }
+    *output << endl;
+    
+    if (out_file.is_open()) {
+        out_file.close();
     }
     
     return 0;

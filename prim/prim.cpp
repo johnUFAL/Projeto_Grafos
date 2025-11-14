@@ -16,9 +16,10 @@ struct compararV {
     }
 };
 
-int Prim(vector<vector<pair<int, int>>>& G, int n, int v0, vector<int>& pre) {
+int Prim(vector<vector<pair<int, int>>>& G, int n, int v0, vector<int>& pre, vector<pair<int, int>>& agm_edges) {
     vector<int> key(n, numeric_limits<int>::max());
-    
+    vector<bool> in_agm(n, false);
+
     for (int i = 0; i < n; i++) {
         pre[i] = -1;
     }
@@ -29,25 +30,22 @@ int Prim(vector<vector<pair<int, int>>>& G, int n, int v0, vector<int>& pre) {
     F.push({v0, 0});    
     
     int tot = 0;
-    int v_processado = 0;
+    agm_edges.clear();
 
-    //todos os v na fila
-    for (int i = 0; i < n; i++) {
-        F.push({i, key[i]});
-    }
-
-    while (!F.empty() && v_processado < n){
+    while (!F.empty()){
         int u = F.top().first;
         int w_u = F.top().second;
         F.pop();
 
-        if(w_u > key[u]) continue;
+        if(in_agm[u]) continue;
+
+        in_agm[u] = true;
+        tot += w_u;
 
         //p total
-        if (pre[u] != -1 || u == v0) {
-            tot +=key[u];
+        if (pre[u] != -1) {
+            agm_edges.push_back({min(pre[u], u), max(pre[u], u)});
         }
-        v_processado++;
 
         //auto pra achar o tipo automaticamente
         for (auto& adj : G[u]) {
@@ -55,7 +53,7 @@ int Prim(vector<vector<pair<int, int>>>& G, int n, int v0, vector<int>& pre) {
             int p = adj.second;
 
             //p é nemor que o atual
-            if (p < key[v]) {
+            if (!in_agm[v] && p < key[v]) {
                 pre[v] = u;
                 key[v] = p;
                 F.push({v, key[v]});
@@ -76,7 +74,7 @@ void ajuda() {
 }
 
 int main(int argc, char* argv[]) {
-    string arquivo = "testee";
+    string arquivo = "";
     int v_init = 0;
     bool solucao = false;
     string saida = "";
@@ -110,13 +108,16 @@ int main(int argc, char* argv[]) {
     int n, m; //le primeira linha
     arq >> n >> m;
 
-    
     vector<vector<pair<int, int>>> G(n);
     
     //lendo aresta
     for (int i = 0; i < m; i++) {
-        int u, v, p;
-        arq >> u >> v >> p;
+        int u, v, p = 1;
+
+        arq >> u >> v;
+        if (arq.peek() != '\n' && arq.peek() != EOF && arq.peek() != '\r') {
+            arq >> p; 
+        }
         
         u--; v--;
         G[u].push_back({v, p});
@@ -126,20 +127,36 @@ int main(int argc, char* argv[]) {
 
     //armazenar pre e key
     vector<int> pre(n);
-    vector<int> key(n);
-    Prim(G, n, v_init, pre);
+    vector<pair<int, int>> agm_edges;
 
-    int pTot = Prim(G, n, v_init, pre);
+    int pTot = Prim(G, n, v_init, pre, agm_edges);
     
-    if (solucao) {
-        for (int i = 1; i < n; i++) {
-            if (pre[i] != -1) {
-                cout << "(" << pre[i] + 1 << "," << i + 1 << ") ";
-            }
+    sort(agm_edges.begin(), agm_edges.end());
+
+    ostream* output = &cout;
+    ofstream out_file;
+    
+    if (!saida.empty()) {
+        out_file.open(saida);
+        if (!out_file) {
+            cerr << "Erro ao criar arquivo de saida: " << saida << endl;
+            return 1;
         }
-        cout << endl;
+        output = &out_file;
+    }
+
+    if (solucao) {
+        for (size_t i = 0; i < agm_edges.size(); i++) {
+            *output << "(" << agm_edges[i].first + 1 << "," << agm_edges[i].second + 1 << ")";
+            if (i < agm_edges.size() - 1) *output << " ";
+        }
+        *output << endl;
     } else {
-        cout << pTot << endl;
+        *output << pTot << endl;
+    }
+    
+    if (out_file.is_open()) {
+        out_file.close();
     }
     
     return 0;
